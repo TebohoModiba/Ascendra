@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     HUNTER_API_KEY: str = ""
     ADZUNA_APP_ID: str = ""
     ADZUNA_APP_KEY: str = ""
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
     ALLOWED_ORIGINS: str = "http://localhost:3000"
 
     class Config:
