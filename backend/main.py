@@ -10,6 +10,7 @@ from models.schemas import UserInput, SuggestionResponse
 from services.adzuna_client import search_jobs, normalize_job
 from services.groq_agent import run_agent
 from services.hunter_client import find_contacts
+from services.trend_analyzer import analyze_trends
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ MAX_JOBS = 5
 MAX_JOBS_FOR_OUTREACH = 3
 CONTACTS_PER_DOMAIN = 2
 MAX_CONTACTS_TOTAL = 6
+TREND_SAMPLE_SIZE = 50
 
 _SUFFIX_RE = re.compile(
     r"\b(inc|llc|ltd|corp|corporation|co|company|group|technologies|technology|"
@@ -103,21 +105,22 @@ def health():
 
 @app.post("/api/analyze", response_model=SuggestionResponse)
 async def analyze(payload: UserInput):
-    # 1. Jobs first — needed as RAG context for Groq
+    # 1. Large Adzuna sample — jobs + trend analysis
     try:
         raw_jobs = await search_jobs(
             payload.country,
             payload.target_role,
-            results_per_page=MAX_JOBS,
+            results_per_page=TREND_SAMPLE_SIZE,
         )
     except Exception:
         logger.exception("Adzuna search failed")
         raw_jobs = []
 
-    jobs = [normalize_job(j) for j in raw_jobs]
-    job_titles = [j["title"] for j in jobs[:5]]
+    all_jobs = [normalize_job(j) for j in raw_jobs]
+    jobs = all_jobs[:MAX_JOBS]
+    job_titles = [j["title"] for j in jobs]
 
-    # 2. Groq with jobs as context (cached)
+    # 2. Groq reasoning (cached by resume + role)
     ck = cache_key(payload.resume, payload.target_role)
     agent = cache_get(ck)
     if agent is None:
@@ -132,7 +135,12 @@ async def analyze(payload: UserInput):
             raise HTTPException(status_code=502, detail=f"Groq error: {e}")
         cache_put(ck, agent)
 
-    # 3. Hunter contacts
+    # 3. Trend analysis (cached by role + country)
+    trend_analysis = analyze_trends(
+        all_jobs, payload.target_role, payload.country
+    )
+
+    # 4. Hunter contacts (top 5 jobs only)
     contacts = await _collect_contacts(jobs)
 
     return {
@@ -148,4 +156,5 @@ async def analyze(payload: UserInput):
         "assignments": agent.get("assignments", []),
         "jobs": jobs,
         "contacts": contacts,
+        "trend_analysis": trend_analysis,
     }

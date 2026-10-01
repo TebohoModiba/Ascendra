@@ -10,6 +10,7 @@ import UpskillingCard from "@/components/SuggestionCards/UpskillingCard";
 import AssignmentCard from "@/components/SuggestionCards/AssignmentCard";
 import JobCard from "@/components/SuggestionCards/JobCard";
 import OutreachCard from "@/components/SuggestionCards/OutreachCard";
+import TrendCard from "@/components/SuggestionCards/TrendCard";
 import { fetchSuggestions } from "@/lib/api";
 import type { SuggestionResponse, Country } from "@/types/api";
 
@@ -47,7 +48,7 @@ export default function Page() {
       <OfflineBanner />
       <main className="min-h-screen px-4 py-6 sm:px-6 md:px-8 lg:px-12 max-w-6xl mx-auto">
         <header className="mb-8 text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             Ascendra Agentic
           </h1>
           <p className="mt-2 text-sm sm:text-base text-slate-400">
@@ -80,6 +81,9 @@ export default function Page() {
               <UpskillingCard items={data.upskilling} />
               <AssignmentCard items={data.assignments} />
               <OutreachCard contacts={data.contacts} />
+              <div className="md:col-span-2 lg:col-span-3">
+                <TrendCard trend={data.trend_analysis} />
+              </div>
               <div className="md:col-span-2 lg:col-span-3">
                 <JobCard jobs={data.jobs} country={country} />
               </div>

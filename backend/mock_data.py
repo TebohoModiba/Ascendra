@@ -78,4 +78,54 @@ MOCK_RESPONSE = {
             "company": "Acme Corp",
         }
     ],
+    "trend_analysis": {
+        "market_outlook": (
+            "Demand for Senior Backend Engineers remains strong through 2026, "
+            "with remote-friendly roles accelerating. Cloud-native and distributed "
+            "systems expertise is now table stakes; pure framework knowledge is fading."
+        ),
+        "demand_trend": "rising",
+        "emerging_skills": [
+            {
+                "skill": "Kubernetes",
+                "why": "Most production deployments now assume container orchestration.",
+                "demand": "high",
+            },
+            {
+                "skill": "Event-driven architecture",
+                "why": "Kafka and SQS show up in 40% of listings.",
+                "demand": "high",
+            },
+            {
+                "skill": "OpenTelemetry",
+                "why": "Observability is becoming a hiring requirement.",
+                "demand": "medium",
+            },
+        ],
+        "declining_skills": [
+            {
+                "skill": "Manual deployment workflows",
+                "why": "Automated CI/CD is now expected.",
+                "timeline": "12-24 months",
+            },
+            {
+                "skill": "Monolithic architectures",
+                "why": "Microservices are the default for new builds.",
+                "timeline": "24-36 months",
+            },
+        ],
+        "salary_trend": (
+            "Salaries are up 6% year-over-year, with remote roles compressing "
+            "regional gaps."
+        ),
+        "hot_locations": [
+            {"city": "New York, NY", "count": 12},
+            {"city": "Remote", "count": 9},
+            {"city": "San Francisco, CA", "count": 7},
+        ],
+        "top_companies": ["Decca Recruiting", "Lawfully", "Strategic Employment Partners"],
+        "salary_range": {"min": 151023, "max": 230837, "median": 180000},
+        "sample_size": 50,
+        "confidence": "high",
+    },
 }

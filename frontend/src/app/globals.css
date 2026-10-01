@@ -10,6 +10,7 @@ body {
   min-height: 100dvh;
   background: #0f172a;
   color: #e2e8f0;
+  overflow-x: hidden;
 }
 
 input,
@@ -40,4 +41,17 @@ button {
 }
 .animate-pulse-soft {
   animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* iOS safe-area utilities */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.safe-bottom {
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+@media (max-width: 639px) {
+  .sticky.bottom-3 {
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
 }

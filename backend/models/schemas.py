@@ -8,6 +8,8 @@ class UserInput(BaseModel):
     country: str = Field("us", max_length=2)
 
 
+# ---- AI reasoning models ----
+
 class TransferableSkill(BaseModel):
     has: str
     maps_to: str
@@ -34,6 +36,8 @@ class UpskillingItem(BaseModel):
     estimated_weeks: int
 
 
+# ---- External data models ----
+
 class Contact(BaseModel):
     name: Optional[str] = None
     email: str
@@ -51,6 +55,46 @@ class Job(BaseModel):
     salary_max: Optional[float] = None
 
 
+# ---- Trend analysis models ----
+
+class EmergingSkill(BaseModel):
+    skill: str
+    why: str
+    demand: Literal["high", "medium"]
+
+
+class DecliningSkill(BaseModel):
+    skill: str
+    why: str
+    timeline: str
+
+
+class HotLocation(BaseModel):
+    city: str
+    count: Optional[int] = None
+
+
+class SalaryRange(BaseModel):
+    min: Optional[float] = None
+    max: Optional[float] = None
+    median: Optional[float] = None
+
+
+class TrendAnalysis(BaseModel):
+    market_outlook: str
+    demand_trend: Literal["rising", "stable", "cooling"]
+    emerging_skills: list[EmergingSkill]
+    declining_skills: list[DecliningSkill]
+    salary_trend: str
+    hot_locations: list[HotLocation]
+    top_companies: list[str]
+    salary_range: Optional[SalaryRange] = None
+    sample_size: int
+    confidence: Literal["high", "medium", "low"]
+
+
+# ---- API response ----
+
 class SuggestionResponse(BaseModel):
     readiness_score: int
     career_move_type: Literal["vertical", "horizontal", "cross-industry"]
@@ -59,3 +103,4 @@ class SuggestionResponse(BaseModel):
     assignments: list[str]
     jobs: list[Job]
     contacts: list[Contact]
+    trend_analysis: TrendAnalysis
