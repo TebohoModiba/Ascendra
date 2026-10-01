@@ -5,6 +5,7 @@ import UserInputForm from "@/components/UserInputForm";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import OfflineBanner from "@/components/OfflineBanner";
 import InstallPrompt from "@/components/InstallPrompt";
+import ReadinessCard from "@/components/SuggestionCards/ReadinessCard";
 import UpskillingCard from "@/components/SuggestionCards/UpskillingCard";
 import AssignmentCard from "@/components/SuggestionCards/AssignmentCard";
 import JobCard from "@/components/SuggestionCards/JobCard";
@@ -70,12 +71,18 @@ export default function Page() {
         {loading && <LoadingOverlay />}
 
         {data && (
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <UpskillingCard items={data.upskilling} />
-            <AssignmentCard items={data.assignments} />
-            <OutreachCard contacts={data.contacts} />
-            <div className="md:col-span-2 lg:col-span-3">
-              <JobCard jobs={data.jobs} country={country} />
+          <div className="mt-8 space-y-4 sm:space-y-6">
+            <ReadinessCard
+              score={data.readiness_score}
+              careerMove={data.career_move_type}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <UpskillingCard items={data.upskilling} />
+              <AssignmentCard items={data.assignments} />
+              <OutreachCard contacts={data.contacts} />
+              <div className="md:col-span-2 lg:col-span-3">
+                <JobCard jobs={data.jobs} country={country} />
+              </div>
             </div>
           </div>
         )}

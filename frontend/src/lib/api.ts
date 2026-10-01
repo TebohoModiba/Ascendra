@@ -6,7 +6,7 @@ export async function fetchSuggestions(
   input: UserInput,
   signal?: AbortSignal,
 ): Promise<SuggestionResponse> {
-  const r = await fetch(`${API}/api/suggest`, {
+  const r = await fetch(`${API}/api/analyze`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -29,7 +29,6 @@ export function formatSalary(
   if (min == null) return null;
   const currency = country === "za" ? "ZAR" : country === "gb" ? "GBP" : "USD";
   const symbol = currency === "ZAR" ? "R" : currency === "GBP" ? "£" : "$";
-
   const fmt = (n: number) => `${symbol}${Math.round(n / 1000)}k`;
 
   if (max == null || Math.abs(max - min) < 1) return `~${fmt(min)}`;

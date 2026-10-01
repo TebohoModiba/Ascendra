@@ -23,13 +23,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---- Config knobs ----
 MAX_JOBS = 5
 MAX_JOBS_FOR_OUTREACH = 3
 CONTACTS_PER_DOMAIN = 2
 MAX_CONTACTS_TOTAL = 6
-
-# ---- Domain guessing ----
 
 _SUFFIX_RE = re.compile(
     r"\b(inc|llc|ltd|corp|corporation|co|company|group|technologies|technology|"
@@ -39,10 +36,8 @@ _SUFFIX_RE = re.compile(
 
 
 def _domain_candidates(company_name: str) -> list[str]:
-    """Return best-guess domains for a company, most likely first."""
     if not company_name:
         return []
-
     base = _SUFFIX_RE.sub("", company_name)
     base = re.sub(r"[^\w\s-]", "", base).strip().lower()
     words = base.split()
@@ -79,7 +74,6 @@ async def _collect_contacts(jobs: list[dict]) -> list[dict]:
             if domain in seen_domains:
                 continue
             seen_domains.add(domain)
-            logger.debug("Hunter lookup: %s (%s)", domain, company)
             found = await find_contacts(domain, limit=CONTACTS_PER_DOMAIN)
             if found:
                 logger.info("Hunter %s -> %d contacts", domain, len(found))
@@ -90,8 +84,6 @@ async def _collect_contacts(jobs: list[dict]) -> list[dict]:
 
     return contacts[:MAX_CONTACTS_TOTAL]
 
-
-# ---- Routes ----
 
 @app.get("/")
 def root():
@@ -109,20 +101,9 @@ def health():
     }
 
 
-@app.post("/api/suggest", response_model=SuggestionResponse)
-async def suggest(payload: UserInput):
-    # ---- 1. Groq agent (cached) ----
-    ck = cache_key(payload.resume, payload.target_role)
-    agent = cache_get(ck)
-    if agent is None:
-        try:
-            agent = run_agent(payload.resume, payload.target_role)
-        except Exception as e:
-            logger.exception("Groq agent failed")
-            raise HTTPException(status_code=502, detail=f"Groq error: {e}")
-        cache_put(ck, agent)
-
-    # ---- 2. Adzuna jobs ----
+@app.post("/api/analyze", response_model=SuggestionResponse)
+async def analyze(payload: UserInput):
+    # 1. Jobs first — needed as RAG context for Groq
     try:
         raw_jobs = await search_jobs(
             payload.country,
@@ -134,13 +115,35 @@ async def suggest(payload: UserInput):
         raw_jobs = []
 
     jobs = [normalize_job(j) for j in raw_jobs]
-    if not jobs:
-        logger.warning("Adzuna returned 0 jobs for '%s'", payload.target_role)
+    job_titles = [j["title"] for j in jobs[:5]]
 
-    # ---- 3. Hunter contacts ----
+    # 2. Groq with jobs as context (cached)
+    ck = cache_key(payload.resume, payload.target_role)
+    agent = cache_get(ck)
+    if agent is None:
+        try:
+            agent = run_agent(
+                payload.resume,
+                payload.target_role,
+                job_titles=job_titles,
+            )
+        except Exception as e:
+            logger.exception("Groq agent failed")
+            raise HTTPException(status_code=502, detail=f"Groq error: {e}")
+        cache_put(ck, agent)
+
+    # 3. Hunter contacts
     contacts = await _collect_contacts(jobs)
 
     return {
+        "readiness_score": agent.get("readiness_score", 0),
+        "career_move_type": agent.get("career_move_type", "vertical"),
+        "gap_analysis": agent.get("gap_analysis", {
+            "matched_skills": [],
+            "transferable_skills": [],
+            "missing_skills": [],
+            "seniority_delta": "",
+        }),
         "upskilling": agent.get("upskilling", []),
         "assignments": agent.get("assignments", []),
         "jobs": jobs,
